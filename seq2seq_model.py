@@ -178,8 +178,6 @@ class Seq2SeqModel:
             elif encoder_decoder_type == "mbart":
                 self.model = model_class.from_pretrained(encoder_decoder_name)
                 self.encoder_tokenizer = tokenizer_class.from_pretrained(encoder_decoder_name, src_lang="tr_TR", tgt_lang="tr_TR")
-            self.model.config.use_cache = False
-            self.model.gradient_checkpointing_enable()
             self.decoder_tokenizer = self.encoder_tokenizer
             self.config = self.model.config
         else:
@@ -200,6 +198,11 @@ class Seq2SeqModel:
                 self.decoder_tokenizer = BertTokenizer.from_pretrained(decoder_name)
             self.encoder_config = self.model.config.encoder
             self.decoder_config = self.model.config.decoder
+
+        if self.args.gradient_checkpointing:
+            logger.info("Applying gradient checkpointing.")
+            self.model.config.use_cache = False
+            self.model.gradient_checkpointing_enable()
 
         if self.args.wandb_project and not wandb_available:
             warnings.warn("wandb_project specified but wandb is not available. Wandb disabled.")
